@@ -86,8 +86,8 @@ resource "null_resource" "configure-cat-app" {
       "sudo apt install ansible -y",
       "sudo apt install nginx -y",
       "sudo apt install git -y",
-      #"sudo git clone https://github.com/LDGA45/Practica1SA.git",
-      #"sudo ansible-playbook -i ./Practica1SA_Front/Ansible/inventario.ini ./Practica1SA_Front/Ansible/comando1.yml"
+      #"sudo git clone https://github.com/LDGA45/Practica1_SA.git",
+      #"sudo ansible-playbook -i ./Practica1_SA_Front/Ansible/inventario.ini ./Practica1_SA_Front/Ansible/comando1.yml"
     ]
 
     connection {
@@ -113,8 +113,8 @@ resource "null_resource" "configure-ansible" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo git clone https://github.com/LDGA45/Practica1SA.git",
-      "sudo ansible-playbook -i ./Practica1SA/Ansible/inventario.ini ./Practica1SA/Ansible/comando1.yml",
+      "sudo git clone https://github.com/LDGA45/Practica1_SA.git",
+      "sudo ansible-playbook -i ./Practica1_SA/Ansible/inventario.ini ./Practica1_SA/Ansible/comando1.yml",
       "sudo service nginx reload"
     ]
 

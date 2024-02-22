@@ -4,5 +4,5 @@
   tasks:
     - name: Copiar archivo
       copy:
-        src: /home/ubuntu/Practica1SA/front/index.html
+        src: /home/ubuntu/Practica1_SA/front/index.html
         dest: /var/www/html/
