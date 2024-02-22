@@ -1,0 +1,8 @@
+---
+- name: Copiar archivo localmente
+  hosts: localhost
+  tasks:
+    - name: Copiar archivo
+      copy:
+        src: /home/ubuntu/Practica1SA/front/index.html
+        dest: /var/www/html/

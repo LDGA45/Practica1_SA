@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Software Avanzado</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden; /* Evita el desbordamiento del contenido animado */
+      background: linear-gradient(150deg, rgb(0, 0, 0), rgb(26, 77, 68), rgb(17, 51, 66));
+      background-size: 400% 300%;
+      animation: BgGradient 5s ease infinite;
+    }
+
+    .container {
+      background-color: #4d4d4d;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      color: #fff;
+      text-align: left; 
+      font-size: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .item {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    strong {
+      margin-right: 40px;
+      min-width: 80px;  
+      display: inline-block; 
+    }
+
+    p {
+      margin: 0;
+    }
+
+    @keyframes BgGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="item">
+      <strong>Nombre:</strong> Luis David Garcia Alay
+    </div>
+    <div class="item">
+      <strong>Carnet:</strong> 201612511
+    </div>
+    <div class="item">
+      <strong>Fecha:</strong> <span id="date"></span>
+    </div>
+    <div class="item">
+      <strong>Hora:</strong> <span id="time"></span>
+    </div>
+  </div>
+
+  <script>
+    function formatDate(date) {
+      const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      return date.toLocaleDateString(undefined, options);
+    }
+
+    function formatTime(date) {
+      const options = {
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+      };
+      return date.toLocaleTimeString(undefined, options);
+    }
+
+    function updateDateTime() {
+      const currentDateTime = new Date();
+      document.getElementById('date').innerText = formatDate(currentDateTime);
+      document.getElementById('time').innerText = formatTime(currentDateTime);
+    }
+ 
+    const intervalId = setInterval(updateDateTime, 1000);
+ 
+    </script>
+</body>
+</html>
