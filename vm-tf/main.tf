@@ -1,13 +1,55 @@
-resource "google_compute_network" "hashicat" {
-  name                    = "hashicat-network"
-  auto_create_subnetworks = false
+resource "google_service_account" "default" {
+  account_id   = "my-custom-sa"
+  display_name = "Custom SA for VM Instance"
 }
 
-resource "google_compute_subnetwork" "hashicat" {
-  name          = "dany-subnet"
-  region        = "us-central1"
-  network       = google_compute_network.hashicat.self_link
-  ip_cidr_range = "10.0.0.0/24"
+resource "google_compute_instance" "default" {
+  name =  "hola"
+  machine_type = "n2-standard-2"
+  zone         = "us-central1-a"
+
+  tags = ["foo", "bar"]
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+      labels = {
+        my_label = "value"
+      }
+    }
+  }
+
+  // Local SSD disk
+  scratch_disk {
+    interface = "NVME"
+  }
+
+  network_interface {
+    network = "default"
+    subnetwork = "default"
+
+    access_config {
+      // Ephemeral public IP
+    }
+  }
+
+  metadata = {
+    foo = "bar"
+  }
+
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    sudo apt-get update
+    sudo apt-get install -y git
+    sudo git clone https://github.com/LDGA45/Practica1_SA.git /github
+    sudo apt-get install -y ansible
+    sudo ansible-playbook /github/ansible/playbook.yml
+  EOF
+
+  service_account {
+    scopes = ["cloud-platform"]
+  }
+
 }
 
 resource "google_compute_firewall" "allow-http" {
@@ -21,107 +63,17 @@ resource "google_compute_firewall" "allow-http" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+#########################################################################
+#
+  #provisioner "remote-exec" {
+   # inline = [
+      #"sudo apt-get update -y",
+     # "Sudo apt-get software-properties-common",
+    #  "echo | sudo apt-add-repository-yes-update ppa:ansible/ansible",
+   #   "sudo apt install ansible -y",
+  #    "sudo apt install nginx -y",
+ #    "sudo apt install git -y",
+#    ]
 
-resource "google_compute_firewall" "internal-allow" {
-  name    = "allow-internal-traffic"
-  network = google_compute_network.hashicat.self_link
 
-  allow {
-    protocol = "tcp"
-  }
 
-  source_ranges = [google_compute_subnetwork.hashicat.ip_cidr_range]
-  target_tags   = ["http-server"]
-}
-
-resource "tls_private_key" "ssh-key" {
-  algorithm = "ED25519"
-}
-
-resource "google_compute_instance" "hashicat" {
-  count        = 2
-  name         = count.index == 0 ? "production" : "worker"
-  machine_type = "n2-standard-2"
-  zone         = "us-central1-a"
-
-  boot_disk {
-    initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2204-lts"
-    }
-  }
-
-  network_interface {
-    subnetwork = google_compute_subnetwork.hashicat.self_link
-    access_config {
-    }
-  }
-
-  metadata = {
-    ssh-keys = "ubuntu:${chomp(tls_private_key.ssh-key.public_key_openssh)} terraform"
-   
-  }
-
-  tags = ["http-server"]
-
-  labels = {
-    name = "hashicat-${count.index + 1}"
-  }
-}
-
-resource "null_resource" "configure-cat-app" {
-  count = 1
-
-  depends_on = [
-    google_compute_instance.hashicat,
-  ]
-
-  triggers = {
-    build_number = timestamp()
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update -y",
-      "echo | sudo apt-add-repository ppa:ansible/ansible",
-      "sudo apt install ansible -y",
-      "sudo apt install nginx -y",
-      "sudo apt install git -y",
-    ]
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      timeout     = "300s"
-      private_key = tls_private_key.ssh-key.private_key_pem
-      host        = google_compute_instance.hashicat[count.index].network_interface.0.access_config.0.nat_ip
-    }
-  }
-}
-
-resource "null_resource" "configure-ansible" {
-  count = 1
-
-  depends_on = [
-    null_resource.configure-cat-app,
-  ]
-
-  triggers = {
-    build_number = timestamp()
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo git clone https://github.com/LDGA45/Practica1_SA.git",
-      "sudo ansible-playbook -i ./Practica1_SA/Ansible/inventario.ini ./Practica1_SA/Ansible/comando1.yml",
-      "sudo service nginx reload"
-    ]
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      timeout     = "300s"
-      private_key = tls_private_key.ssh-key.private_key_pem
-      host        = google_compute_instance.hashicat[count.index].network_interface.0.access_config.0.nat_ip
-    }
-  }
-}
