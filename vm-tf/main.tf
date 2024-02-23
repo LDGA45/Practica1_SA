@@ -10,17 +10,16 @@ resource "google_compute_subnetwork" "hashicat" {
   ip_cidr_range = "10.0.0.0/24"
 }
 
-resource "google_compute_firewall" "http-server" {
-  name    = "dany-default-allow-ssh-http"
-  network = google_compute_network.hashicat.self_link
+resource "google_compute_firewall" "allow-http" {
+  name    = "allow-http"
+  network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "80"]
+    ports    = ["80"]
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["http-server"]
 }
 
 resource "google_compute_firewall" "internal-allow" {
@@ -59,6 +58,7 @@ resource "google_compute_instance" "hashicat" {
 
   metadata = {
     ssh-keys = "ubuntu:${chomp(tls_private_key.ssh-key.public_key_openssh)} terraform"
+   
   }
 
   tags = ["http-server"]
@@ -86,8 +86,6 @@ resource "null_resource" "configure-cat-app" {
       "sudo apt install ansible -y",
       "sudo apt install nginx -y",
       "sudo apt install git -y",
-      #"sudo git clone https://github.com/LDGA45/Practica1_SA.git",
-      #"sudo ansible-playbook -i ./Practica1_SA/Ansible/inventario.ini ./Practica1_SA/Ansible/comando1.yml"
     ]
 
     connection {
